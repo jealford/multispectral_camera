@@ -22,4 +22,4 @@ Since we are not running one of Ubiquity’s robots, run this command  to disabl
     
     sudo systemctl disable magni-base
 
-
+![The Drone](https://jakealford.com/github/images/drone.JPG)
