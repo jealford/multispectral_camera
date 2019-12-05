@@ -10,7 +10,7 @@ Our goal with this documentation is to provide the parts and procedures of build
 
 # Parts List
 
-[parts]
+[Parts](#Parts)
 
 # Intial Setup
 
@@ -36,7 +36,8 @@ Since we are not running one of Ubiquity’s robots, run this command  to disabl
 
 ![The Drone](https://jakealford.com/github/images/drone.JPG)
 
-(#parts)
+## Parts
+
 |                                        | QTY | Price   | Total Price |                                                                                                                                                                                                                                                                                                                                    | Vendor    |
 |----------------------------------------|-----|---------|-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
 | **Drone**                                  |     |         |             |                                                                                                                                                                                                                                                                                                                                    |           |
