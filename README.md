@@ -12,29 +12,89 @@ Our goal with this documentation is to provide the parts and procedures of build
 
 [Parts](#Parts)
 
-# Intial Setup
+## Preparing the Pixhawk
 
-For the Raspberry Pi 3 B+, we will be using a Xenial (16.04) Ubuntu image from Ubiquity Robotics. This image comes with ROS pre-installed and so is perfect for our on-board computer for the drone. 
+A solid walkthrough of the basic configuration of the flight controller can be found [here](https://docs.px4.io/v1.9.0/en/config/). Follow the steps in this guide and then return here for subsequent setup.
 
-The image can be downloaded [here](https://downloads.ubiquityrobotics.com/pi.html).
-We used the “2019-06-19-ubiquity-xenial-lxde” file
+For the onboard computer (Raspberry Pi 3B+, in our case), we need to set up the telemetry 2 port to handle MAVLink communication.  We do this by adjusting several parameters on the board. We can do this using QGroundControl that was installed in the aforementioned guide. Connect to the flight controller, either by USB or telemetry radio and open the Parameter’s tab in QGC.
 
-## Setting Up the Pi 3
+Find the parameter `SERIAL2_PROTOCOL` and set it’s value to `MAVLink1`. Also set `SERIAL2_BAUD` to `921600`, this is the baud rate we will use for the UART communication.
+
+![SerialParams](https://jakealford.com/github/images/serial2params.png)
+
+## OS images for Pi’s
+
+For the Raspberry Pi 3 B+, we will be using a Xenial (16.04) Ubuntu image from Ubiquity Robotics. This image comes with ROS Kinetic pre-installed and so is perfect for our on-board computer for the drone. 
+
+The image can be downloaded [here](https://downloads.ubiquityrobotics.com/pi.html)
+We used the “2019-06-19-ubiquity-xenial-lxde” file.
+
+The Raspberry Pi Zero runs the lightweight version of Raspbian Buster. That image can be downloaded [here](https://www.raspberrypi.org/downloads/raspbian/). 
+
+Use an image writing software like [Etcher](https://www.balena.io/etcher/) to write these images to your micro SD cards for the Pi’s. A 16GB card minimum is recommended for each.   
+
+## Setting up the Pi 3
 
 Upon first boot, the Pi will resize it’s file system to fill the SD card, this may take a few moments.
 
+The username is `ubuntu` with password `ubuntu`.
+
 The image comes with a Wifi access point which will come in use later but for now we will need to connect to the internet to grab updates and software packages. 
 
-First, disconnect form the access point then connect to internet wifi/ethernet
+First, disconnect form the access point then connect to internet enabled wifi/ethernet and perform software updates.
 
     sudo apt-get update
     sudo apt-get upgrade
 
-Since we are not running one of Ubiquity’s robots, run this command  to disable their startup scripts
-    
+This will take some time.
+
+Since we are not running one of Ubiquity’s robots, run this command  to disable their startup scripts.
+
     sudo systemctl disable magni-base
 
-![The Drone](https://jakealford.com/github/images/drone.JPG)
+We then need to configure some settings on the Pi 3. Run the configuration dialog:
+
+    sudo raspi-config 
+
+Select “Interfacing Options” then “P1 Camera” and “Yes” to enable. Do the same for “P2 SSH” 
+
+Insert Image Here
+
+For Raspberry Pi 3B+, the bluetooth module occupied uart serial port. To disable the bluetooth, add `dtoverlay=pi3-disable-bt` and `enable_uart=1` the end of **/boot/config.txt**. Also, edit the content of **/boot/cmdline.txt** to
+`dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait quiet splash plymouth.ignore-serial-consoles`.
+
+## Install MavROS
+
+MavROS is a communication node for ROS with a proxy for a Ground Control Station. It allows us to send MAVLnk messages from the onboard computer to the flight controller. More information can be found [here](https://github.com/mavlink/mavros/blob/master/mavros/README.md).
+
+To install on the Raspberry Pi 3, run the following commands:
+
+    sudo apt-get install ros-kinetic-mavros ros-kinetic-mavros-extras
+
+    wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
+
+To run geographiclib script, make sure to add execute permissions then run the script.
+
+    chmod a+x install_geographiclib_datasets.sh
+    sudo ./install_geographiclib_datasets.sh
+
+Now is a good time to run a test. Hook up the Raspberry Pi 3 to the Pixhawk as shown below.
+
+Insert Image Here
+
+Power them both up and run the below code to in a terminal. (The first command sets the publishing rate to 10 Hrtz for all MavROS topics, which we found was needed for the publishing of topics to go through) 
+
+    rosrun mavros mavsys rate --all 10
+    roslaunch mavros apm.launch fcu_url:=/dev/ttyAMA0:921600
+
+Open up a new terminal window and issue the below command. 
+
+    rostopic echo /mavros/imu/mag
+
+Should see IMU data published to the terminal as illustrated below.
+
+Insert Image Here
+
 
 ## Parts
 
