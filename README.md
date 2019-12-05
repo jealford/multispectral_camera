@@ -1,4 +1,16 @@
-# multispectral_camera
+# Low Cost Drone with Multispectral Imaging System
+
+This project is part of the BioSensing and Instrumentation Lab (BSAIL) at the University of Georgia. Our goal was to develop a low cost drone and imaging system for high throughput phenotyping for agricultural crops. Most high-end drones and sensor systems used in the research field can cost tens of thousands of dollars so we set out to develop a custom built option at a fraction of the price. 
+
+Our drone uses a Pixhawk 4 flight controller which is an open hardware project aimed at providing high-quality and low cost autopilot hardware. The flight controller runs the ArduPilot flight stack. Our first sensor system is a low cost multispectral camera using Raspberry Pi’s with RGB and NIR cameras.
+
+Our goal with this documentation is to provide the parts and procedures of building this drone so that it can be applied by others on similar projects. As we continue this research we will expand this documentation as necessary. 
+
+![The Drone](https://jakealford.com/github/images/drone.JPG)
+
+# Parts List
+
+[parts]
 
 # Intial Setup
 
@@ -24,7 +36,7 @@ Since we are not running one of Ubiquity’s robots, run this command  to disabl
 
 ![The Drone](https://jakealford.com/github/images/drone.JPG)
 
-
+(#parts)
 |                                        | QTY | Price   | Total Price |                                                                                                                                                                                                                                                                                                                                    | Vendor    |
 |----------------------------------------|-----|---------|-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
 | **Drone**                                  |     |         |             |                                                                                                                                                                                                                                                                                                                                    |           |
