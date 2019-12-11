@@ -80,7 +80,7 @@ To run geographiclib script, make sure to add execute permissions then run the s
 
 Now is a good time to run a test. Hook up the Raspberry Pi 3 to the Pixhawk as shown below.
 
-Insert Image Here
+![Wiring to Pi](https://jakealford.com/github/images/wiring_pi_telem.JPG)
 
 Power them both up and run the below code to in a terminal. (The first command sets the publishing rate to 10 Hrtz for all MavROS topics, which we found was needed for the publishing of topics to go through) 
 
