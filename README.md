@@ -93,7 +93,7 @@ Open up a new terminal window and issue the below command.
 
 Should see IMU data published to the terminal as illustrated below.
 
-![Pixhawk to Pi Communication Test](https://jakealford.com/github/images/imu.png)
+![Pixhawk to Pi Communication Test](https://jakealford.com/github/images/imu_test.png)
 
 
 ## Parts
