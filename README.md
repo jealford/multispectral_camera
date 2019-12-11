@@ -56,9 +56,9 @@ We then need to configure some settings on the Pi 3. Run the configuration dialo
 
     sudo raspi-config 
 
-Select “Interfacing Options” then “P1 Camera” and “Yes” to enable. Do the same for “P2 SSH” 
+Select `Interfacing Options` then `P1 Camera` and `Yes` to enable. Do the same for `P2 SSH`. We also need to configure several serial options on the config page. Select `P5 Serial`, select `No` for "Would you like a login shell to be accessible over serial?" and `Yes` for "Would you like the serial port hardware to be enabled?".
 
-Insert Image Here
+![Wiring to Pi](https://jakealford.com/github/images/cam_ssh.png)
 
 For Raspberry Pi 3B+, the bluetooth module occupied uart serial port. To disable the bluetooth, add `dtoverlay=pi3-disable-bt` and `enable_uart=1` the end of **/boot/config.txt**. Also, edit the content of **/boot/cmdline.txt** to
 `dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait quiet splash plymouth.ignore-serial-consoles`.
@@ -93,7 +93,7 @@ Open up a new terminal window and issue the below command.
 
 Should see IMU data published to the terminal as illustrated below.
 
-Insert Image Here
+![Pixhawk to Pi Communication Test](https://jakealford.com/github/images/imu.png)
 
 
 ## Parts
