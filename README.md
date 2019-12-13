@@ -1,6 +1,6 @@
 # Low Cost Drone with Multispectral Imaging System
 
-This project is part of the BioSensing and Instrumentation Lab (BSAIL) at the University of Georgia. Our goal was to develop a low cost drone and imaging system for high throughput phenotyping for agricultural crops. Most high-end drones and sensor systems used in the research field can cost tens of thousands of dollars so we set out to develop a custom built option at a fraction of the price. 
+This project is part of the BioSensing and Instrumentation Lab (BSAIL) at the University of Georgia. Our goal was to develop a low cost drone and imaging system for high throughput phenotyping for agricultural crops. Most high-end drones and sensor systems used in the research field can cost tens of thousands of dollars so we set out to develop a custom built option at a fraction of the price.
 
 Our drone uses a Pixhawk 4 flight controller which is an open hardware project aimed at providing high-quality and low cost autopilot hardware. The flight controller runs the ArduPilot flight stack. Our first sensor system is a low cost multispectral camera using Raspberry Pi’s with RGB and NIR cameras.
 
@@ -22,18 +22,14 @@ Find the parameter `SERIAL2_PROTOCOL` and set it’s value to `MAVLink1`. Also s
 
 ![SerialParams](https://jakealford.com/github/images/serial2params.png)
 
-## OS images for Pi’s
+## Setting up the Pi 3
 
-For the Raspberry Pi 3 B+, we will be using a Xenial (16.04) Ubuntu image from Ubiquity Robotics. This image comes with ROS Kinetic pre-installed and so is perfect for our on-board computer for the drone. 
+For the Raspberry Pi 3 B+, we will be using a Xenial (16.04) Ubuntu image from Ubiquity Robotics. This image comes with ROS Kinetic pre-installed and so is perfect for our on-board computer for the drone.
 
 The image can be downloaded [here](https://downloads.ubiquityrobotics.com/pi.html)
 We used the “2019-06-19-ubiquity-xenial-lxde” file.
 
-The Raspberry Pi Zero runs the lightweight version of Raspbian Buster. That image can be downloaded [here](https://www.raspberrypi.org/downloads/raspbian/). 
-
-Use an image writing software like [Etcher](https://www.balena.io/etcher/) to write these images to your micro SD cards for the Pi’s. A 16GB card minimum is recommended for each.   
-
-## Setting up the Pi 3
+Use an image writing software like [Etcher](https://www.balena.io/etcher/) to write this image to your micro SD card for the Pi. A 16GB card minimum is recommended but even larger is prefered if planning to capture large amounts of high resolution images and/or video.
 
 Upon first boot, the Pi will resize it’s file system to fill the SD card, this may take a few moments.
 
@@ -94,6 +90,83 @@ Open up a new terminal window and issue the below command.
 Should see IMU data published to the terminal as illustrated below.
 
 ![Pixhawk to Pi Communication Test](https://jakealford.com/github/images/imu_test.png)
+
+## Setting Up the Pi Zero and Connect the two Pi's
+
+The second Raspberry Pi we will use is a Raspberry Pi Zero. Ours runs the lightweight version of Raspbian Buster. That image can be downloaded [here](https://www.raspberrypi.org/downloads/raspbian/).
+
+After downloading, use image writing software like [Etcher](https://www.balena.io/etcher/) to  write this image to your micro SD card and when finished **DO NOT** remove from your computer just yet. Continue below.  
+
+To interface the Rasberry Pi 3 and Pi Zero, we chose to go with setting up the Zero as an 'ethernet gadget'. This allows us to network the two microcontrollers together so that we can SSH into the Pi Zero from the Pi 3 without using a wireless connection or ethernet port. We can also SCP images collected from the Pi Zero camera over to the Pi 3 for easier retrevial of data post flight.
+
+To begin the connections we must do some configuration on the SD card with the Raspbian OS on the Pi Zero first. On the root directory (i.e. /boot) open the file `config.txt` with your prefered text editor using sudo. Scroll down to the bottom of this file and add `dtoverlay=dwc2` to a new line. Save and exit. 
+
+![Eidt config.txt](https://jakealford.com/github/images/configtext.png)
+
+Next open `cmdline.txt` and scroll across to find the command `rootwait`. After `rootwait` add `modules-load=dwc2,g_ether` being careful not to add and extra spaces or newline characters.  
+
+![Eidt config.txt](https://jakealford.com/github/images/cmdlinetext.png)
+
+Lastly, we need to enable SSH so that we can communicate with the Pi Zero once it's connected to the Pi3. We can do this by placing a file name `ssh`, without an extension, onto the boot partition.
+
+Now we can connect the Pi's and test the connection. You will need a Type B Micro to type A USB cable (Male to Male) that has data capabilities (ie not just voltage and ground). Note that the Micro USB plug goes into the port labeled `USB` on the Pi zero (not the `PWR IN`). This will provide both the data connection and power to the Pi Zero.
+
+Power up the Pi 3 and the Pi Zero should power itself up. After the Pi 3 has booted up, open a terminal window and test the connection.
+
+    ping raspberrypi.local
+
+If successfull, next SSH into the Pi Zero.
+
+    ssh pi@raspberrypi.local
+
+The default password is `raspberry`.
+
+Lastly, we need to enable the camera interface similair to how we did with the Pi 3.
+
+    sudo raspi-config 
+
+Select `Interfacing Options` then `P1 Camera` and `Yes` to enable.
+
+### Setting up Camera Trigger on Pi Zero
+
+We are using a GPIO interrupt to trigger the camera on the Pi Zero. When the image capture command is received by the Pi 3, our main onboard computer running ROS, it sets a GPIO pin high that is connected to a GPIO pin on the Pi Zero that has code running to catch this signal and trigger its camera.
+
+Our code uses the GPIO21 on both the Pi 3 and Pi Zero for the interrupt but it can be tailored to any pin if need be, just update the code. Also the two Pi's need to share a common ground. A wiring diagram illustrates our setup below.
+
+## Pixhawk Camera Trigger
+
+Now it is time to configure the Pixhawk's camera trigger. Power up the flight controller and connect it to QGroundControl through either USB or telemetry. Open the Parameters tab and in the side pane select `CAM`. Set the following parameters: 
+* `CAM_RELAY_ON` : `High`
+* `CAM_TRIGG_TYPE` : `Relay`
+* `CAM_DURATION` : `5 ds`
+
+Then in the side pane select `RELAY` and the following parameters:
+* `RELAY_DEFAULT` : `Off`
+* `RELAY_PIN` : `Pixhawk AUXOUT5`
+
+The Pixhawk camera trigger is now on AUXOUT5 which we then connect to another GPIO Pin on the Raspberry Pi 3 that is configured with an interupt. The wiring is illustrated below.
+
+## Capturing an Image
+
+We now have everything set up to capture images using the Pixhawk and on board computer. Connect the camera's to each Pi: the RGB to the Pi 3, and NIR to the Pi Zero. Boot up both the flight controller and Pi and open a terminal to run these commands:
+
+    rosrun mavros mavsys rate --all 10
+    roslaunch mavros apm.launch fcu_url:=/dev/ttyAMA0:921600
+
+Open a new terminal tab and run the image capture server that starts the ROS service for the camera. 
+
+    rosrun multispectral_camera capture_image_server.py
+
+To capture an image call the service in a new terminal.
+
+   rosservice call /capture_image 1
+
+When the ROS capture_image_server is terminated (i.e. Ctrl-c) the images from the Pi Zero will be automatically SCP over to the Pi 3 and are stored in `~/images`.
+
+## Data Processing
+
+Each camera triggering will capture an RGB and NIR photo. We are currently using these two images to compute NDVI, Normalized Difference Vegetation Index, which is a scale that estimates plant chlorophyll content. An example we captured with this system is below.
+
 
 
 ## Parts
