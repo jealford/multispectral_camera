@@ -29,15 +29,15 @@ For the Raspberry Pi 3 B+, we will be using a Xenial (16.04) Ubuntu image from U
 The image can be downloaded [here](https://downloads.ubiquityrobotics.com/pi.html)
 We used the “2019-06-19-ubiquity-xenial-lxde” file.
 
-Use an image writing software like [Etcher](https://www.balena.io/etcher/) to write this image to your micro SD card for the Pi. A 16GB card minimum is recommended but even larger is prefered if planning to capture large amounts of high resolution images and/or video.
+Use an image writing software like [Etcher](https://www.balena.io/etcher/) to write this image to your micro SD card for the Pi. A 16GB card minimum is recommended but even larger is preferred if planning to capture large amounts of high resolution images and/or video.
 
 Upon first boot, the Pi will resize it’s file system to fill the SD card, this may take a few moments.
 
 The username is `ubuntu` with password `ubuntu`.
 
-The image comes with a Wifi access point which will come in use later but for now we will need to connect to the internet to grab updates and software packages. 
+The image comes with a Wi-Fi access point which will come in use later but for now we will need to connect to the internet to grab updates and software packages. 
 
-First, disconnect form the access point then connect to internet enabled wifi/ethernet and perform software updates.
+First, disconnect form the access point then connect to internet enabled Wi-Fi/ethernet and perform software updates.
 
     sudo apt-get update
     sudo apt-get upgrade
@@ -56,7 +56,7 @@ Select `Interfacing Options` then `P1 Camera` and `Yes` to enable. Do the same f
 
 ![Wiring to Pi](https://jakealford.com/github/images/cam_ssh.png)
 
-For Raspberry Pi 3B+, the bluetooth module occupied uart serial port. To disable the bluetooth, add `dtoverlay=pi3-disable-bt` and `enable_uart=1` the end of **/boot/config.txt**. Also, edit the content of **/boot/cmdline.txt** to
+For Raspberry Pi 3B+, the Bluetooth module occupied uart serial port. To disable the Bluetooth, add `dtoverlay=pi3-disable-bt` and `enable_uart=1` the end of **/boot/config.txt**. Also, edit the content of **/boot/cmdline.txt** to
 `dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait quiet splash plymouth.ignore-serial-consoles`.
 
 ## Install MavROS
@@ -97,31 +97,31 @@ The second Raspberry Pi we will use is a Raspberry Pi Zero. Ours runs the lightw
 
 After downloading, use image writing software like [Etcher](https://www.balena.io/etcher/) to  write this image to your micro SD card and when finished **DO NOT** remove from your computer just yet. Continue below.  
 
-To interface the Rasberry Pi 3 and Pi Zero, we chose to go with setting up the Zero as an 'ethernet gadget'. This allows us to network the two microcontrollers together so that we can SSH into the Pi Zero from the Pi 3 without using a wireless connection or ethernet port. We can also SCP images collected from the Pi Zero camera over to the Pi 3 for easier retrevial of data post flight.
+To interface the Raspberry Pi 3 and Pi Zero, we chose to go with setting up the Zero as an 'ethernet gadget'. This allows us to network the two microcontrollers together so that we can SSH into the Pi Zero from the Pi 3 without using a wireless connection or ethernet port. We can also SCP images collected from the Pi Zero camera over to the Pi 3 for easier retrieval of data post flight.
 
-To begin the connections we must do some configuration on the SD card with the Raspbian OS on the Pi Zero first. On the root directory (i.e. /boot) open the file `config.txt` with your prefered text editor using sudo. Scroll down to the bottom of this file and add `dtoverlay=dwc2` to a new line. Save and exit. 
+To begin the connections we must do some configuration on the SD card with the Raspbian OS on the Pi Zero first. On the root directory (i.e. /boot) open the file `config.txt` with your preferred text editor using sudo. Scroll down to the bottom of this file and add `dtoverlay=dwc2` to a new line. Save and exit. 
 
-![Eidt config.txt](https://jakealford.com/github/images/configtext.png)
+![Edit config.txt](https://jakealford.com/github/images/configtext.png)
 
 Next open `cmdline.txt` and scroll across to find the command `rootwait`. After `rootwait` add `modules-load=dwc2,g_ether` being careful not to add and extra spaces or newline characters.  
 
-![Eidt config.txt](https://jakealford.com/github/images/cmdlinetext.png)
+![Edit config.txt](https://jakealford.com/github/images/cmdlinetext.png)
 
 Lastly, we need to enable SSH so that we can communicate with the Pi Zero once it's connected to the Pi3. We can do this by placing a file name `ssh`, without an extension, onto the boot partition.
 
-Now we can connect the Pi's and test the connection. You will need a Type B Micro to type A USB cable (Male to Male) that has data capabilities (ie not just voltage and ground). Note that the Micro USB plug goes into the port labeled `USB` on the Pi zero (not the `PWR IN`). This will provide both the data connection and power to the Pi Zero.
+Now we can connect the Pi's and test the connection. You will need a Type B Micro to type A USB cable (Male to Male) that has data capabilities (i.e. not just voltage and ground). Note that the Micro USB plug goes into the port labeled `USB` on the Pi zero (not the `PWR IN`). This will provide both the data connection and power to the Pi Zero.
 
 Power up the Pi 3 and the Pi Zero should power itself up. After the Pi 3 has booted up, open a terminal window and test the connection.
 
     ping raspberrypi.local
 
-If successfull, next SSH into the Pi Zero.
+If successful, next SSH into the Pi Zero.
 
     ssh pi@raspberrypi.local
 
 The default password is `raspberry`.
 
-Lastly, we need to enable the camera interface similair to how we did with the Pi 3.
+Lastly, we need to enable the camera interface similar to how we did with the Pi 3.
 
     sudo raspi-config 
 
@@ -132,6 +132,8 @@ Select `Interfacing Options` then `P1 Camera` and `Yes` to enable.
 We are using a GPIO interrupt to trigger the camera on the Pi Zero. When the image capture command is received by the Pi 3, our main onboard computer running ROS, it sets a GPIO pin high that is connected to a GPIO pin on the Pi Zero that has code running to catch this signal and trigger its camera.
 
 Our code uses the GPIO21 on both the Pi 3 and Pi Zero for the interrupt but it can be tailored to any pin if need be, just update the code. Also the two Pi's need to share a common ground. A wiring diagram illustrates our setup below.
+
+![Pi3 to Pi Zero Wiring](https://jakealford.com/github/images/pi3_to_pizero.png)
 
 ## Pixhawk Camera Trigger
 
@@ -144,7 +146,9 @@ Then in the side pane select `RELAY` and the following parameters:
 * `RELAY_DEFAULT` : `Off`
 * `RELAY_PIN` : `Pixhawk AUXOUT5`
 
-The Pixhawk camera trigger is now on AUXOUT5 which we then connect to another GPIO Pin on the Raspberry Pi 3 that is configured with an interupt. The wiring is illustrated below.
+The Pixhawk camera trigger is now on AUXOUT5 which we then connect to another GPIO Pin on the Raspberry Pi 3 that is configured with an interrupt. The wiring is illustrated below.
+
+![FC to PI Trigg Wiring](https://jakealford.com/github/images/pi_fc_trigg.png)
 
 ## Capturing an Image
 
@@ -167,9 +171,10 @@ When the ROS capture_image_server is terminated (i.e. Ctrl-c) the images from th
 
 Each camera triggering will capture an RGB and NIR photo. We are currently using these two images to compute NDVI, Normalized Difference Vegetation Index, which is a scale that estimates plant chlorophyll content. An example we captured with this system is below.
 
-
+![NDVI Example](https://jakealford.com/github/images/ndvi_ex.png)
 
 ## Parts
+
 
 |                                        | QTY | Price   | Total Price |                                                                                                                                                                                                                                                                                                                                    | Vendor    |
 |----------------------------------------|-----|---------|-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
